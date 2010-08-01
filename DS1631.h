@@ -33,32 +33,32 @@
 
 // {0.5, 0.25, 0.125, 0.0625}
 
-#include <Wire.h>
+#include <stdint.h>
+#include "Wire.h"
 
-typedef uint8_t byte;
-typedef unsigned int size_t;
+typedef unsigned int uint_t, size_t;
 
 class DS1631Config
 {
 
   public:
 
-    int DONE    : 1;
-    int THF     : 1;
-    int TLF     : 1;
-    int NVB     : 1;
-    int R1      : 1;
-    int R0      : 1;
-    int POL     : 1;
-    int ONESHOT : 1;
+    uint_t ONESHOT : 1;  // 0x01
+    uint_t POL     : 1;  // 0x02
+    uint_t R0      : 1;  // 0x04
+    uint_t R1      : 1;  // 0x08
+    uint_t NVB     : 1;  // 0x10
+    uint_t TLF     : 1;  // 0x20
+    uint_t THF     : 1;  // 0x40
+    uint_t DONE    : 1;  // 0x80
 
     DS1631Config();
-    DS1631Config(byte val);
+    DS1631Config(uint8_t val);
 
-    byte getResolution(void);
-    void setResolution(byte val);
+    uint8_t getResolution(void);
+    void setResolution(uint8_t val);
 
-};
+} __attribute__((__packed__));
 
 
 class DS1631Temperature
@@ -66,19 +66,20 @@ class DS1631Temperature
 
   public:
 
-    int negative  : 1;
-    int intPart   : 7;
-    int fracPart  : 4;
-    //int __padding : 4;
+    uint_t __padding : 4;  // 0x000F
+    uint_t fracPart  : 4;  // 0x00F0
+    uint_t intPart   : 7;  // 0x7F00
+    uint_t negative  : 1;  // 0x8000
 
     DS1631Temperature(int _intPart);
     DS1631Temperature(int _intPart, int _fracPart);
     DS1631Temperature(float _value);
+	DS1631Temperature(byte[2] _value);
 
     operator int() const;
     operator float() const;
 
-};
+} __attribute__((__packed__));
 
 
 class DS1631
@@ -88,8 +89,8 @@ class DS1631
 
     DS1631Config config;
 
-    DS1631(byte addr);
-    DS1631(byte addr, DS1631Config cfg);
+    DS1631(uint8_t addr);
+    DS1631(uint8_t addr, DS1631Config cfg);
 
     void start(void);
     void stop(void);
@@ -98,7 +99,7 @@ class DS1631
 
     void readTH(DS1631Temperature *val);
     void readTL(DS1631Temperature *val);
-    
+
     void writeTH(DS1631Temperature *val);
     void writeTL(DS1631Temperature *val);
 
@@ -106,19 +107,19 @@ class DS1631
 
     void readConfig(void);
     void writeConfig(void);
-    
-    byte getAddress(void);
+
+    uint8_t getAddress(void);
 
   private:
 
-    byte addr;
+    uint8_t addr;
 
-    void read(const byte command, byte *data);
-    void read(const byte command, byte *data, byte len);
+    void read(const uint8_t command, uint8_t *data);
+    void read(const uint8_t command, uint8_t *data, uint8_t len);
 
-    void write(const byte command);
-    void write(const byte command, byte data);
-    void write(const byte command, byte *data, byte len);
+    void write(const uint8_t command);
+    void write(const uint8_t command, uint8_t data);
+    void write(const uint8_t command, uint8_t *data, uint8_t len);
 
 };
 

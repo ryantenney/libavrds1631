@@ -4,27 +4,32 @@ extern "C" {
 
 DS1631Config::DS1631Config()
 {
-  byte *self = (byte *) this;
+  uint8_t *self = (uint8_t *) this;
   *self = DS1631_CFG_DEFAULT;
 }
 
 
-DS1631Config::DS1631Config(byte config)
+DS1631Config::DS1631Config(uint8_t config)
 {
-  byte *self = (byte *) this;
+  uint8_t *self = (uint8_t *) this;
   *self = config;
 }
 
 
-byte DS1631Config::getResolution(void)
+uint8_t DS1631Config::getResolution(void)
 {
-  return 9 + (R1 << 1) + R0;
+  uint8_t _val;
+  _val  = (R1 & 0x01) << 1;
+  _val |= (R0 & 0x01);
+  _val += 9;
+  return _val;
 }
 
 
-void DS1631Config::setResolution(const byte val)
+void DS1631Config::setResolution(const uint8_t val)
 {
-  byte _val = (val - 9) & 0x03;
+  uint8_t _val;
+  _val = (val - 9) & 0x03;
   R1 = _val >> 1;
   R0 = _val & 0x01;
 }
@@ -78,17 +83,18 @@ DS1631Temperature::operator float() const
     _val = intPart;
   }
   ////
+  return 0.0;
 }
 
 
 
-DS1631::DS1631(byte _addr)
+DS1631::DS1631(uint8_t _addr)
 {
   addr = (_addr & DS1631_ADDR_MASK) | DS1631_BASE_ADDR;
 }
 
 
-DS1631::DS1631(byte _addr, DS1631Config _config)
+DS1631::DS1631(uint8_t _addr, DS1631Config _config)
 {
   addr = (_addr & DS1631_ADDR_MASK) | DS1631_BASE_ADDR;
   config = _config;
@@ -96,10 +102,10 @@ DS1631::DS1631(byte _addr, DS1631Config _config)
 }
 
 
-void DS1631::read(const byte command, byte *data)
+void DS1631::read(const uint8_t command, uint8_t *data)
 {
   write(command);
-  Wire.requestFrom(addr, (byte) 1);
+  Wire.requestFrom(addr, (uint8_t) 1);
   
   if (Wire.available())
   {
@@ -108,7 +114,7 @@ void DS1631::read(const byte command, byte *data)
 }
 
 
-void DS1631::read(const byte command, byte *data, byte len)
+void DS1631::read(const uint8_t command, uint8_t *data, uint8_t len)
 {
   write(command);
   Wire.requestFrom(addr, len);
@@ -121,7 +127,7 @@ void DS1631::read(const byte command, byte *data, byte len)
 }
 
 
-void DS1631::write(const byte command)
+void DS1631::write(const uint8_t command)
 {
   Wire.beginTransmission(addr);
   Wire.send(command);
@@ -129,7 +135,7 @@ void DS1631::write(const byte command)
 }
 
 
-void DS1631::write(const byte command, byte data)
+void DS1631::write(const uint8_t command, uint8_t data)
 {
   Wire.beginTransmission(addr);
   Wire.send(command);
@@ -138,7 +144,7 @@ void DS1631::write(const byte command, byte data)
 }
 
 
-void DS1631::write(const byte command, byte *data, byte len)
+void DS1631::write(const uint8_t command, uint8_t *data, uint8_t len)
 {
   Wire.beginTransmission(addr);
   Wire.send(command);
@@ -161,47 +167,47 @@ void DS1631::stop(void)
 
 void DS1631::readTemp(DS1631Temperature *data)
 {
-  byte *val = (byte *) data;
+  uint8_t *val = (uint8_t *) data;
   read(DS1631_CMD_READ_TEMPERATURE, val, 2);
 }
 
 
 void DS1631::readTH(DS1631Temperature *data)
 {
-  byte *val = (byte *) data;
+  uint8_t *val = (uint8_t *) data;
   read(DS1631_CMD_ACCESS_TH, val, 2);
 }
 
 
 void DS1631::readTL(DS1631Temperature *data)
 {
-  byte *val = (byte *) data;
+  uint8_t *val = (uint8_t *) data;
   read(DS1631_CMD_ACCESS_TL, val, 2);
 }
 
 
 void DS1631::writeTH(DS1631Temperature *data)
 {
-  write(DS1631_CMD_ACCESS_TH, (byte *) data, 2);
+  write(DS1631_CMD_ACCESS_TH, (uint8_t *) data, 2);
 }
 
 
 void DS1631::writeTL(DS1631Temperature *data)
 {
-  write(DS1631_CMD_ACCESS_TL, (byte *) data, 2);
+  write(DS1631_CMD_ACCESS_TL, (uint8_t *) data, 2);
 }
 
 
 void DS1631::readConfig(void)
 {
-  byte *data = (byte *) &config;
+  uint8_t *data = (uint8_t *) &config;
   read(DS1631_CMD_ACCESS_CONFIG, data);
 }
 
 
 void DS1631::writeConfig(void)
 {
-  write(DS1631_CMD_ACCESS_CONFIG, (byte *) &config, 1);
+  write(DS1631_CMD_ACCESS_CONFIG, (uint8_t *) &config, 1);
 }
 
 
@@ -211,7 +217,7 @@ void DS1631::softwarePOR(void)
 }
 
 
-byte DS1631::getAddress(void)
+uint8_t DS1631::getAddress(void)
 {
   return (addr & DS1631_ADDR_MASK);
 }
